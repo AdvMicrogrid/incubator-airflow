@@ -295,7 +295,7 @@ function updateQueryStringParameter(uri, key, value) {
     });
 
     $("#btn_ti").click(function(){
-      url = "/admin/taskinstance/" +
+      url = "/airflow/admin/taskinstance/" +
         "?flt1_dag_id_equals=" + dag_id +
         "&flt2_task_id_equals=" + task_id +
         "&sort=3&desc=1";

@@ -179,7 +179,7 @@ def label_link(v, c, m, p):
 
 
 def pool_link(v, c, m, p):
-    url = '/admin/taskinstance/?flt1_pool_equals=' + m.pool
+    url = '/airflow/admin/taskinstance/?flt1_pool_equals=' + m.pool
     return Markup("<a href='{url}'>{m.pool}</a>".format(**locals()))
 
 
@@ -243,7 +243,7 @@ def data_profiling_required(f):
 
 def fused_slots(v, c, m, p):
     url = (
-        '/admin/taskinstance/' +
+        '/airflow/admin/taskinstance/' +
         '?flt1_pool_equals=' + m.pool +
         '&flt2_state_equals=running')
     return Markup("<a href='{0}'>{1}</a>".format(url, m.used_slots()))
@@ -251,7 +251,7 @@ def fused_slots(v, c, m, p):
 
 def fqueued_slots(v, c, m, p):
     url = (
-        '/admin/taskinstance/' +
+        '/airflow/admin/taskinstance/' +
         '?flt1_pool_equals=' + m.pool +
         '&flt2_state_equals=queued&sort=10&desc=1')
     return Markup("<a href='{0}'>{1}</a>".format(url, m.queued_slots()))
