@@ -1434,10 +1434,10 @@ class WebUiTests(unittest.TestCase):
         assert "example_bash_operator" in response.data.decode('utf-8')
 
     def test_query(self):
-        response = self.app.get('/admin/queryview/')
+        response = self.app.get('/airflow/admin/queryview/')
         assert "Ad Hoc Query" in response.data.decode('utf-8')
         response = self.app.get(
-            "/admin/queryview/?"
+            "/airflow/admin/queryview/?"
             "conn_id=airflow_db&"
             "sql=SELECT+COUNT%281%29+as+TEST+FROM+task_instance")
         assert "TEST" in response.data.decode('utf-8')
@@ -1447,87 +1447,87 @@ class WebUiTests(unittest.TestCase):
         assert 'The server is healthy!' in response.data.decode('utf-8')
 
     def test_headers(self):
-        response = self.app.get('/admin/airflow/headers')
+        response = self.app.get('/airflow/admin/airflow/headers')
         assert '"headers":' in response.data.decode('utf-8')
 
     def test_noaccess(self):
-        response = self.app.get('/admin/airflow/noaccess')
+        response = self.app.get('/airflow/admin/airflow/noaccess')
         assert "You don't seem to have access." in response.data.decode('utf-8')
 
     def test_pickle_info(self):
-        response = self.app.get('/admin/airflow/pickle_info')
+        response = self.app.get('/airflow/admin/airflow/pickle_info')
         assert '{' in response.data.decode('utf-8')
 
     def test_dag_views(self):
         response = self.app.get(
-            '/admin/airflow/graph?dag_id=example_bash_operator')
+            '/airflow/admin/airflow/graph?dag_id=example_bash_operator')
         assert "runme_0" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/tree?num_runs=25&dag_id=example_bash_operator')
+            '/airflow/admin/airflow/tree?num_runs=25&dag_id=example_bash_operator')
         assert "runme_0" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/duration?days=30&dag_id=example_bash_operator')
+            '/airflow/admin/airflow/duration?days=30&dag_id=example_bash_operator')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/tries?days=30&dag_id=example_bash_operator')
+            '/airflow/admin/airflow/tries?days=30&dag_id=example_bash_operator')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/landing_times?'
+            '/airflow/admin/airflow/landing_times?'
             'days=30&dag_id=example_bash_operator')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/gantt?dag_id=example_bash_operator')
+            '/airflow/admin/airflow/gantt?dag_id=example_bash_operator')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/code?dag_id=example_bash_operator')
+            '/airflow/admin/airflow/code?dag_id=example_bash_operator')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/blocked')
+            '/airflow/admin/airflow/blocked')
         response = self.app.get(
-            '/admin/configurationview/')
+            '/airflow/admin/configurationview/')
         assert "Airflow Configuration" in response.data.decode('utf-8')
         assert "Running Configuration" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/rendered?'
+            '/airflow/admin/airflow/rendered?'
             'task_id=runme_1&dag_id=example_bash_operator&'
             'execution_date={}'.format(DEFAULT_DATE_ISO))
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/log?task_id=run_this_last&'
+            '/airflow/admin/airflow/log?task_id=run_this_last&'
             'dag_id=example_bash_operator&execution_date={}'
             ''.format(DEFAULT_DATE_ISO))
         assert "run_this_last" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/task?'
+            '/airflow/admin/airflow/task?'
             'task_id=runme_0&dag_id=example_bash_operator&'
             'execution_date={}'.format(DEFAULT_DATE_DS))
         assert "Attributes" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/dag_stats')
+            '/airflow/admin/airflow/dag_stats')
         assert "example_bash_operator" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/task_stats')
+            '/airflow/admin/airflow/task_stats')
         assert "example_bash_operator" in response.data.decode('utf-8')
         url = (
-            "/admin/airflow/success?task_id=run_this_last&"
+            "/airflow/admin/airflow/success?task_id=run_this_last&"
             "dag_id=test_example_bash_operator&upstream=false&downstream=false&"
             "future=false&past=false&execution_date={}&"
-            "origin=/admin".format(DEFAULT_DATE_DS))
+            "origin=/airflow/admin".format(DEFAULT_DATE_DS))
         response = self.app.get(url)
         assert "Wait a minute" in response.data.decode('utf-8')
         response = self.app.get(url + "&confirmed=true")
         response = self.app.get(
-            '/admin/airflow/clear?task_id=run_this_last&'
+            '/airflow/admin/airflow/clear?task_id=run_this_last&'
             'dag_id=test_example_bash_operator&future=true&past=false&'
             'upstream=true&downstream=false&'
             'execution_date={}&'
-            'origin=/admin'.format(DEFAULT_DATE_DS))
+            'origin=/airflow/admin'.format(DEFAULT_DATE_DS))
         assert "Wait a minute" in response.data.decode('utf-8')
         url = (
-            "/admin/airflow/success?task_id=section-1&"
+            "/airflow/admin/airflow/success?task_id=section-1&"
             "dag_id=example_subdag_operator&upstream=true&downstream=true&"
             "future=false&past=false&execution_date={}&"
-            "origin=/admin".format(DEFAULT_DATE_DS))
+            "origin=/airflow/admin".format(DEFAULT_DATE_DS))
         response = self.app.get(url)
         assert "Wait a minute" in response.data.decode('utf-8')
         assert "section-1-task-1" in response.data.decode('utf-8')
@@ -1537,27 +1537,27 @@ class WebUiTests(unittest.TestCase):
         assert "section-1-task-5" in response.data.decode('utf-8')
         response = self.app.get(url + "&confirmed=true")
         url = (
-            "/admin/airflow/clear?task_id=runme_1&"
+            "/airflow/admin/airflow/clear?task_id=runme_1&"
             "dag_id=test_example_bash_operator&future=false&past=false&"
             "upstream=false&downstream=true&"
             "execution_date={}&"
-            "origin=/admin".format(DEFAULT_DATE_DS))
+            "origin=/airflow/admin".format(DEFAULT_DATE_DS))
         response = self.app.get(url)
         assert "Wait a minute" in response.data.decode('utf-8')
         response = self.app.get(url + "&confirmed=true")
         url = (
-            "/admin/airflow/run?task_id=runme_0&"
+            "/airflow/admin/airflow/run?task_id=runme_0&"
             "dag_id=example_bash_operator&ignore_all_deps=false&ignore_ti_state=true&"
             "ignore_task_deps=true&execution_date={}&"
-            "origin=/admin".format(DEFAULT_DATE_DS))
+            "origin=/airflow/admin".format(DEFAULT_DATE_DS))
         response = self.app.get(url)
         response = self.app.get(
-            "/admin/airflow/refresh?dag_id=example_bash_operator")
-        response = self.app.get("/admin/airflow/refresh_all")
+            "/airflow/admin/airflow/refresh?dag_id=example_bash_operator")
+        response = self.app.get("/airflow/admin/airflow/refresh_all")
         response = self.app.get(
-            "/admin/airflow/paused?"
+            "/airflow/admin/airflow/paused?"
             "dag_id=example_python_operator&is_paused=false")
-        response = self.app.get("/admin/xcom", follow_redirects=True)
+        response = self.app.get("/airflow/admin/xcom", follow_redirects=True)
         assert "Xcoms" in response.data.decode('utf-8')
 
     def test_charts(self):
@@ -1568,20 +1568,20 @@ class WebUiTests(unittest.TestCase):
         chart_id = chart.id
         session.close()
         response = self.app.get(
-            '/admin/airflow/chart'
+            '/airflow/admin/airflow/chart'
             '?chart_id={}&iteration_no=1'.format(chart_id))
         assert "Airflow task instance by type" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/chart_data'
+            '/airflow/admin/airflow/chart_data'
             '?chart_id={}&iteration_no=1'.format(chart_id))
         assert "example" in response.data.decode('utf-8')
         response = self.app.get(
-            '/admin/airflow/dag_details?dag_id=example_branch_operator')
+            '/airflow/admin/airflow/dag_details?dag_id=example_branch_operator')
         assert "run_this_first" in response.data.decode('utf-8')
 
     def test_fetch_task_instance(self):
         url = (
-            "/admin/airflow/object/task_instances?"
+            "/airflow/admin/airflow/object/task_instances?"
             "dag_id=test_example_bash_operator&"
             "execution_date={}".format(DEFAULT_DATE_DS))
         response = self.app.get(url)
@@ -1624,17 +1624,17 @@ class WebPasswordAuthTest(unittest.TestCase):
         return form.find('.//input[@name="_csrf_token"]').value
 
     def login(self, username, password):
-        response = self.app.get('/admin/airflow/login')
+        response = self.app.get('/airflow/admin/airflow/login')
         csrf_token = self.get_csrf(response)
 
-        return self.app.post('/admin/airflow/login', data=dict(
+        return self.app.post('/airflow/admin/airflow/login', data=dict(
             username=username,
             password=password,
             csrf_token=csrf_token
         ), follow_redirects=True)
 
     def logout(self):
-        return self.app.get('/admin/airflow/logout', follow_redirects=True)
+        return self.app.get('/airflow/admin/airflow/logout', follow_redirects=True)
 
     def test_login_logout_password_auth(self):
         assert configuration.getboolean('webserver', 'authenticate') is True
@@ -1652,7 +1652,7 @@ class WebPasswordAuthTest(unittest.TestCase):
         assert 'form-signin' in response.data.decode('utf-8')
 
     def test_unauthorized_password_auth(self):
-        response = self.app.get("/admin/airflow/landing_times")
+        response = self.app.get("/airflow/admin/airflow/landing_times")
         self.assertEqual(response.status_code, 302)
 
     def tearDown(self):
@@ -1691,17 +1691,17 @@ class WebLdapAuthTest(unittest.TestCase):
         return form.find('.//input[@name="_csrf_token"]').value
 
     def login(self, username, password):
-        response = self.app.get('/admin/airflow/login')
+        response = self.app.get('/airflow/admin/airflow/login')
         csrf_token = self.get_csrf(response)
 
-        return self.app.post('/admin/airflow/login', data=dict(
+        return self.app.post('/airflow/admin/airflow/login', data=dict(
             username=username,
             password=password,
             csrf_token=csrf_token
         ), follow_redirects=True)
 
     def logout(self):
-        return self.app.get('/admin/airflow/logout', follow_redirects=True)
+        return self.app.get('/airflow/admin/airflow/logout', follow_redirects=True)
 
     def test_login_logout_ldap(self):
         assert configuration.getboolean('webserver', 'authenticate') is True
@@ -1719,7 +1719,7 @@ class WebLdapAuthTest(unittest.TestCase):
         assert 'form-signin' in response.data.decode('utf-8')
 
     def test_unauthorized(self):
-        response = self.app.get("/admin/airflow/landing_times")
+        response = self.app.get("/airflow/admin/airflow/landing_times")
         self.assertEqual(response.status_code, 302)
 
     def test_no_filter(self):

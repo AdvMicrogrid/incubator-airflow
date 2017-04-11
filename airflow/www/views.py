@@ -446,7 +446,7 @@ class Airflow(BaseView):
                 "Not supported anymore as the license was incompatible, "
                 "sorry",
                 "danger")
-            redirect('/admin/chart/')
+            redirect('/airflow/admin/chart/')
 
         sql = ""
         if chart.show_sql:
@@ -801,7 +801,7 @@ class Airflow(BaseView):
                 "Task [{}.{}] doesn't seem to exist"
                 " at the moment".format(dag_id, task_id),
                 "error")
-            return redirect('/admin/')
+            return redirect('/airflow/admin/')
         task = copy.copy(dag.get_task(task_id))
         task.resolve_template_files()
         ti = TI(task=task, execution_date=dttm)
@@ -876,7 +876,7 @@ class Airflow(BaseView):
                 "Task [{}.{}] doesn't seem to exist"
                 " at the moment".format(dag_id, task_id),
                 "error")
-            return redirect('/admin/')
+            return redirect('/airflow/admin/')
 
         session = Session()
         xcomlist = session.query(XCom).filter(
@@ -961,7 +961,7 @@ class Airflow(BaseView):
     @wwwutils.notify_owner
     def trigger(self):
         dag_id = request.args.get('dag_id')
-        origin = request.args.get('origin') or "/admin/"
+        origin = request.args.get('origin') or "/airflow/admin/"
         dag = dagbag.get_dag(dag_id)
 
         if not dag:
@@ -1259,7 +1259,7 @@ class Airflow(BaseView):
         dag = dagbag.get_dag(dag_id)
         if dag_id not in dagbag.dags:
             flash('DAG "{0}" seems to be missing.'.format(dag_id), "error")
-            return redirect('/admin/')
+            return redirect('/airflow/admin/')
 
         root = request.args.get('root')
         if root:
@@ -1759,7 +1759,7 @@ class Airflow(BaseView):
             for k, v in d.items():
                 models.Variable.set(k, v, serialize_json=isinstance(v, dict))
             flash("{} variable(s) successfully updated.".format(len(d)))
-        return redirect('/admin/variable')
+        return redirect('/airflow/admin/variable')
 
 class HomeView(AdminIndexView):
     @expose("/")
