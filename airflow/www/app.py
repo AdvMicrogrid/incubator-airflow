@@ -51,7 +51,7 @@ class PrefixMiddleware(object):
 
 def create_app(config=None, testing=False):
     app = Flask(__name__)
-    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/')
+    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/airflow')
     app.secret_key = configuration.get('webserver', 'SECRET_KEY')
     app.config['LOGIN_DISABLED'] = not configuration.getboolean('webserver', 'AUTHENTICATE')
 
@@ -79,8 +79,8 @@ def create_app(config=None, testing=False):
 
         admin = Admin(
             app, name='Airflow',
-            static_url_path='/airflow/admin',
-            index_view=views.HomeView(endpoint='', url='/airflow/admin', name="DAGs"),
+            static_url_path='/admin',
+            index_view=views.HomeView(endpoint='', url='/admin', name="DAGs"),
             template_mode='bootstrap3',
         )
         av = admin.add_view
