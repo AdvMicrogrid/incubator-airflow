@@ -51,7 +51,7 @@ class PrefixMiddleware(object):
 
 def create_app(config=None, testing=False):
     app = Flask(__name__)
-    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/airflow')
+    app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/')
     app.secret_key = configuration.get('webserver', 'SECRET_KEY')
     app.config['LOGIN_DISABLED'] = not configuration.getboolean('webserver', 'AUTHENTICATE')
 
