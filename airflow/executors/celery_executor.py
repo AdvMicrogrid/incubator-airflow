@@ -14,6 +14,7 @@
 
 from builtins import object
 import logging
+import os
 import subprocess
 import tempfile
 import time
@@ -58,8 +59,8 @@ def execute_command(command):
     except subprocess.CalledProcessError as e:
         logging.error(e)
         try:
-            _, tp = tempfile.mkstemp(prefix="celery_executor_err", dir="/var/tmp")
-            with open(tp, 'wb') as f:
+            fd, _ = tempfile.mkstemp(prefix="celery_executor_err", dir="/var/tmp")
+            with os.fdopen(fd) as f:
                 f.write('Error running in Celery: "%s"' % command)
                 f.write('Exception: %s' % str(e))
         except Exception as ex:
