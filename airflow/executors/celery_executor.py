@@ -58,10 +58,10 @@ def execute_command(command):
     except subprocess.CalledProcessError as e:
         logging.error(e)
         try:
-            (tf, tp) = tempfile.mkstemp(dir="/var/tmp")
-            tf.write('Error running in Celery: "%s"' % command)
-            tf.write('Exception: %s' % e)
-            tf.close()
+            _, tp = tempfile.mkstemp(prefix="celery_executor_err", dir="/var/tmp")
+            with open(tp, 'wb') as f:
+                f.write('Error running in Celery: "%s"' % command)
+                f.write('Exception: %s' % str(e))
         except Exception as ex:
             logging.error(ex)
         raise AirflowException('Celery command failed')
