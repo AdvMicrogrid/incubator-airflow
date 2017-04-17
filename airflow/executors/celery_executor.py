@@ -15,6 +15,7 @@
 from builtins import object
 import logging
 import subprocess
+import tempfile
 import time
 
 from celery import Celery
@@ -56,6 +57,13 @@ def execute_command(command):
         subprocess.check_call(command, shell=True)
     except subprocess.CalledProcessError as e:
         logging.error(e)
+        try:
+            (tf, tp) = tempfile.mkstemp(dir="/var/tmp")
+            tf.write('Error running in Celery: "%s"' % command)
+            tf.write('Exception: %s' % e)
+            tf.close()
+        except Exception as ex:
+            logging.error(ex)
         raise AirflowException('Celery command failed')
 
 
