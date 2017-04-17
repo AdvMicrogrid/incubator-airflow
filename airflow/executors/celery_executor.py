@@ -60,7 +60,7 @@ def execute_command(command):
         logging.error(e)
         try:
             fd, _ = tempfile.mkstemp(prefix="celery_executor_err", dir="/var/tmp")
-            with os.fdopen(fd) as f:
+            with os.fdopen(fd, 'w') as f:
                 f.write('Error running in Celery: "%s"' % command)
                 f.write('Exception: %s' % str(e))
         except Exception as ex:
