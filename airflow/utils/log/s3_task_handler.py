@@ -124,6 +124,7 @@ class S3TaskHandler(FileTaskHandler, LoggingMixin):
         try:
             return self.hook.get_key(remote_log_location) is not None
         except Exception:
+            self.log.exception('Failed to find the s3 log')
             pass
         return False
 
