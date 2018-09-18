@@ -37,7 +37,7 @@ class WorkerConfiguration(LoggingMixin):
     def _get_init_containers(self, volume_mounts):
         """When using git to retrieve the DAGs, use the GitSync Init Container"""
         # If we're using volume claims to mount the dags, no init container is needed
-        if self.kube_config.dags_volume_claim:
+        if self.kube_config.dags_volume_claim or not self.kube_config.git_repo:
             return []
 
         # Otherwise, define a git-sync init container
