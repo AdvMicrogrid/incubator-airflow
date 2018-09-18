@@ -115,27 +115,28 @@ class WorkerConfiguration:
             return vo
 
         volumes = [
-            _construct_volume(
-                dags_volume_name,
-                self.kube_config.dags_volume_claim,
-                self.kube_config.dags_volume_subpath
-            ),
+            #_construct_volume(
+            #    dags_volume_name,
+            #    self.kube_config.dags_volume_claim,
+            #    self.kube_config.dags_volume_subpath
+            #),
             _construct_volume(
                 logs_volume_name,
                 self.kube_config.logs_volume_claim
             )
         ]
         volume_mounts = [{
-            'name': dags_volume_name,
-            'mountPath': os.path.join(
-                self.kube_config.dags_folder,
-                self.kube_config.git_subpath
-            ),
-            'readOnly': True
-        }, {
             'name': logs_volume_name,
             'mountPath': self.kube_config.base_log_folder
         }]
+        #{
+        #    'name': dags_volume_name,
+        #    'mountPath': os.path.join(
+        #        self.kube_config.dags_folder,
+        #        self.kube_config.git_subpath
+        #    ),
+        #    'readOnly': True
+        #},
 
         # Mount the airflow.cfg file via a configmap the user has specified
         if self.kube_config.airflow_configmap:
