@@ -120,11 +120,11 @@ class WorkerConfiguration(LoggingMixin):
             return vo
 
         volumes = [
-            _construct_volume(
-                dags_volume_name,
-                self.kube_config.dags_volume_claim,
-                self.kube_config.dags_volume_subpath
-            ),
+            #_construct_volume(
+            #    dags_volume_name,
+            #    self.kube_config.dags_volume_claim,
+            #    self.kube_config.dags_volume_subpath
+            #),
             _construct_volume(
                 logs_volume_name,
                 self.kube_config.logs_volume_claim,
@@ -141,11 +141,12 @@ class WorkerConfiguration(LoggingMixin):
                 self.kube_config.git_subpath
             )
 
+        #{
+        #    'name': dags_volume_name,
+        #    'mountPath': dag_volume_mount_path,
+        #    'readOnly': True
+        #},
         volume_mounts = [{
-            'name': dags_volume_name,
-            'mountPath': dag_volume_mount_path,
-            'readOnly': True
-        }, {
             'name': logs_volume_name,
             'mountPath': self.worker_airflow_logs
         }]
