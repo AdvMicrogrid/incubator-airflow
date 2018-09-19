@@ -179,6 +179,13 @@ class KubeConfig:
         # configmap
         self.airflow_configmap = conf.get(self.kubernetes_section, 'airflow_configmap')
 
+        self.worker_annotations = {}
+        worker_annotations = conf.get(self.kubernetes_section, 'worker_annotations', '')
+        for annotation in worker_annotations.split(','):
+            [key, value] = annotation.split('=')
+            self.worker_annotations[key] = value
+
+
         self._validate()
 
     def _validate(self):
