@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,30 +22,26 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+from builtins import str
+from collections import OrderedDict
 import copy
 import errno
-import os
-import subprocess
-import warnings
-import shlex
-import sys
-
 from future import standard_library
-
+import os
+import shlex
 import six
 from six import iteritems
+import subprocess
+import sys
+import warnings
+
 from backports.configparser import ConfigParser
 from zope.deprecation import deprecated as _deprecated
 
+from airflow.exceptions import AirflowConfigException
 from airflow.utils.log.logging_mixin import LoggingMixin
 
 standard_library.install_aliases()
-
-from builtins import str
-from collections import OrderedDict
-
-from airflow.exceptions import AirflowConfigException
-
 
 log = LoggingMixin().log
 
@@ -105,15 +101,20 @@ def run_command(command):
     return output
 
 
-_templates_dir = os.path.join(os.path.dirname(__file__), 'config_templates')
-with open(os.path.join(_templates_dir, 'default_airflow.cfg')) as f:
-    DEFAULT_CONFIG = f.read()
+def _read_default_config_file(file_name):
+    templates_dir = os.path.join(os.path.dirname(__file__), 'config_templates')
+    file_path = os.path.join(templates_dir, file_name)
     if six.PY2:
-        DEFAULT_CONFIG = DEFAULT_CONFIG.decode('utf-8')
-with open(os.path.join(_templates_dir, 'default_test.cfg')) as f:
-    TEST_CONFIG = f.read()
-    if six.PY2:
-        TEST_CONFIG = TEST_CONFIG.decode('utf-8')
+        with open(file_path) as f:
+            config = f.read()
+            return config.decode('utf-8')
+    else:
+        with open(file_path, encoding='utf-8') as f:
+            return f.read()
+
+
+DEFAULT_CONFIG = _read_default_config_file('default_airflow.cfg')
+TEST_CONFIG = _read_default_config_file('default_test.cfg')
 
 
 class AirflowConfigParser(ConfigParser):
@@ -125,8 +126,28 @@ class AirflowConfigParser(ConfigParser):
         ('core', 'sql_alchemy_conn'),
         ('core', 'fernet_key'),
         ('celery', 'broker_url'),
-        ('celery', 'result_backend')
+        ('celery', 'result_backend'),
+        # Todo: remove this in Airflow 1.11
+        ('celery', 'celery_result_backend'),
     }
+
+    # A two-level mapping of (section -> new_name -> old_name). When reading
+    # new_name, the old_name will be checked to see if it exists. If it does a
+    # DeprecationWarning will be issued and the old name will be used instead
+    deprecated_options = {
+        'celery': {
+            # Remove these keys in Airflow 1.11
+            'worker_concurrency': 'celeryd_concurrency',
+            'broker_url': 'celery_broker_url',
+            'ssl_active': 'celery_ssl_active',
+            'ssl_cert': 'celery_ssl_cert',
+            'ssl_key': 'celery_ssl_key',
+        }
+    }
+    deprecation_format_string = (
+        'The {old} option in [{section}] has been renamed to {new} - the old '
+        'setting has been used, but please update your config.'
+    )
 
     def __init__(self, default_config=None, *args, **kwargs):
         super(AirflowConfigParser, self).__init__(*args, **kwargs)
@@ -185,10 +206,17 @@ class AirflowConfigParser(ConfigParser):
         section = str(section).lower()
         key = str(key).lower()
 
+        deprecated_name = self.deprecated_options.get(section, {}).get(key, None)
+
         # first check environment variables
         option = self._get_env_var_option(section, key)
         if option is not None:
             return option
+        if deprecated_name:
+            option = self._get_env_var_option(section, deprecated_name)
+            if option is not None:
+                self._warn_deprecate(section, key, deprecated_name)
+                return option
 
         # ...then the config file
         if super(AirflowConfigParser, self).has_option(section, key):
@@ -196,11 +224,24 @@ class AirflowConfigParser(ConfigParser):
             # separate the config from default config.
             return expand_env_var(
                 super(AirflowConfigParser, self).get(section, key, **kwargs))
+        if deprecated_name:
+            if super(AirflowConfigParser, self).has_option(section, deprecated_name):
+                self._warn_deprecate(section, key, deprecated_name)
+                return expand_env_var(super(AirflowConfigParser, self).get(
+                    section,
+                    deprecated_name,
+                    **kwargs
+                ))
 
         # ...then commands
         option = self._get_cmd_option(section, key)
         if option:
             return option
+        if deprecated_name:
+            option = self._get_cmd_option(section, deprecated_name)
+            if option:
+                self._warn_deprecate(section, key, deprecated_name)
+                return option
 
         # ...then the default config
         if self.defaults.has_option(section, key):
@@ -323,8 +364,8 @@ class AirflowConfigParser(ConfigParser):
                 opt = None
             if opt:
                 if (
-                        not display_sensitive
-                        and ev != 'AIRFLOW__CORE__UNIT_TEST_MODE'):
+                    not display_sensitive and
+                        ev != 'AIRFLOW__CORE__UNIT_TEST_MODE'):
                     opt = '< hidden >'
                 if display_source:
                     opt = (opt, 'env var')
@@ -350,11 +391,22 @@ class AirflowConfigParser(ConfigParser):
         Note: this is not reversible.
         """
         # override any custom settings with defaults
-        self.defaults.read_string(parameterized_config(DEFAULT_CONFIG))
+        self.read_string(parameterized_config(DEFAULT_CONFIG))
         # then read test config
         self.read_string(parameterized_config(TEST_CONFIG))
         # then read any "custom" test settings
         self.read(TEST_CONFIG_FILE)
+
+    def _warn_deprecate(self, section, key, deprecated_name):
+        warnings.warn(
+            self.deprecation_format_string.format(
+                old=deprecated_name,
+                new=key,
+                section=section,
+            ),
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
 
 def mkdir_p(path):
@@ -442,16 +494,20 @@ if not os.path.isfile(AIRFLOW_CONFIG):
     )
     with open(AIRFLOW_CONFIG, 'w') as f:
         cfg = parameterized_config(DEFAULT_CONFIG)
-        f.write(cfg.split(TEMPLATE_START)[-1].strip())
+        cfg = cfg.split(TEMPLATE_START)[-1].strip()
+        if six.PY2:
+            cfg = cfg.encode('utf8')
+        f.write(cfg)
 
 log.info("Reading the config from %s", AIRFLOW_CONFIG)
 
 conf = AirflowConfigParser(default_config=parameterized_config(DEFAULT_CONFIG))
+
 conf.read(AIRFLOW_CONFIG)
 
+
 if conf.getboolean('webserver', 'rbac'):
-    with open(os.path.join(_templates_dir, 'default_webserver_config.py')) as f:
-        DEFAULT_WEBSERVER_CONFIG = f.read()
+    DEFAULT_WEBSERVER_CONFIG = _read_default_config_file('default_webserver_config.py')
 
     WEBSERVER_CONFIG = AIRFLOW_HOME + '/webserver_config.py'
 

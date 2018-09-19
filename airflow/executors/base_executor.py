@@ -16,11 +16,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+
 from builtins import range
 
 from airflow import configuration
 from airflow.utils.log.logging_mixin import LoggingMixin
 from airflow.utils.state import State
+
+
 PARALLELISM = configuration.conf.getint('core', 'PARALLELISM')
 
 
@@ -147,7 +150,7 @@ class BaseExecutor(LoggingMixin):
         self.sync()
 
     def change_state(self, key, state):
-        print("popping: {}".format(key))
+        self.log.debug("Changing state: {}".format(key))
         self.running.pop(key)
         self.event_buffer[key] = state
 

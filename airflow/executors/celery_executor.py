@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -81,17 +81,17 @@ class CeleryExecutor(BaseExecutor):
     def execute_async(self, key, command,
                       queue=DEFAULT_CELERY_CONFIG['task_default_queue'],
                       executor_config=None):
-        self.log.info( "[celery] queuing {key} through celery, "
-                       "queue={queue}".format(**locals()))
+        self.log.info("[celery] queuing {key} through celery, "
+                      "queue={queue}".format(**locals()))
         self.tasks[key] = execute_command.apply_async(
             args=[command], queue=queue)
         self.last_state[key] = celery_states.PENDING
 
     def sync(self):
         self.log.debug("Inquiring about %s celery task(s)", len(self.tasks))
-        for key, async in list(self.tasks.items()):
+        for key, task in list(self.tasks.items()):
             try:
-                state = async.state
+                state = task.state
                 if self.last_state[key] != state:
                     if state == celery_states.SUCCESS:
                         self.success(key)
@@ -106,8 +106,8 @@ class CeleryExecutor(BaseExecutor):
                         del self.tasks[key]
                         del self.last_state[key]
                     else:
-                        self.log.info("Unexpected state: %s", async.state)
-                    self.last_state[key] = async.state
+                        self.log.info("Unexpected state: %s", task.state)
+                    self.last_state[key] = task.state
             except Exception as e:
                 self.log.error("Error syncing the celery executor, ignoring it:")
                 self.log.exception(e)
@@ -115,7 +115,7 @@ class CeleryExecutor(BaseExecutor):
     def end(self, synchronous=False):
         if synchronous:
             while any([
-                    async.state not in celery_states.READY_STATES
-                    for async in self.tasks.values()]):
+                    task.state not in celery_states.READY_STATES
+                    for task in self.tasks.values()]):
                 time.sleep(5)
         self.sync()

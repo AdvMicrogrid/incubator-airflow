@@ -5,6 +5,29 @@ assists users migrating to a new version.
 
 ## Airflow Master
 
+## Airflow 1.10
+
+Installation and upgrading requires setting `SLUGIFY_USES_TEXT_UNIDECODE=yes` in your environment or
+`AIRFLOW_GPL_UNIDECODE=yes`. In case of the latter a GPL runtime dependency will be installed due to a
+dependency (python-nvd3 -> python-slugify -> unidecode).
+
+### Replace DataProcHook.await calls to DataProcHook.wait
+
+The method name was changed to be compatible with the Python 3.7 async/await keywords
+
+### DAG level Access Control for new RBAC UI
+
+Extend and enhance new Airflow RBAC UI to support DAG level ACL. Each dag now has two permissions(one for write, one for read) associated('can_dag_edit', 'can_dag_read').
+The admin will create new role, associate the dag permission with the target dag and assign that role to users. That user can only access / view the certain dags on the UI
+that he has permissions on. If a new role wants to access all the dags, the admin could associate dag permissions on an artificial view(``all_dags``) with that role.
+
+We also provide a new cli command(``sync_perm``) to allow admin to auto sync permissions.
+
+### Setting UTF-8 as default mime_charset in email utils
+
+### Add a configuration variable(default_dag_run_display_number) to control numbers of dag run for display
+Add a configuration variable(default_dag_run_display_number) under webserver section to control num of dag run to show in UI.
+
 ### Default executor for SubDagOperator is changed to SequentialExecutor
 
 ### New Webserver UI with Role-Based Access Control
@@ -32,6 +55,7 @@ Run `airflow webserver` to start the new UI. This will bring up a log in page, e
 There are five roles created for Airflow by default: Admin, User, Op, Viewer, and Public. To configure roles/permissions, go to the `Security` tab and click `List Roles` in the new UI.
 
 #### Breaking changes
+- AWS Batch Operator renamed property queue to job_queue to prevent conflict with the internal queue from CeleryExecutor - AIRFLOW-2542
 - Users created and stored in the old users table will not be migrated automatically. FAB's built-in authentication support must be reconfigured.
 - Airflow dag home page is now `/home` (instead of `/admin`).
 - All ModelViews in Flask-AppBuilder follow a different pattern from Flask-Admin. The `/admin` part of the url path will no longer exist. For example: `/admin/connection` becomes `/connection/list`, `/admin/connection/new` becomes `/connection/add`, `/admin/connection/edit` becomes `/connection/edit`, etc.
@@ -52,6 +76,9 @@ To make the config of Airflow compatible with Celery, some properties have been 
 ```
 celeryd_concurrency -> worker_concurrency
 celery_result_backend -> result_backend
+celery_ssl_active -> ssl_active
+celery_ssl_cert -> ssl_cert
+celery_ssl_key -> ssl_key
 ```
 Resulting in the same config parameters as Celery 4, with more transparency.
 
@@ -60,15 +87,32 @@ Dataflow job labeling is now supported in Dataflow{Java,Python}Operator with a d
 "airflow-version" label, please upgrade your google-cloud-dataflow or apache-beam version
 to 2.2.0 or greater.
 
+### BigQuery Hooks and Operator
+The `bql` parameter passed to `BigQueryOperator` and `BigQueryBaseCursor.run_query` has been deprecated and renamed to `sql` for consistency purposes. Using `bql` will still work (and raise a `DeprecationWarning`), but is no longer
+supported and will be removed entirely in Airflow 2.0
+
 ### Redshift to S3 Operator
-With Airflow 1.9 or lower, Unload operation always included header row. In order to include header row, 
+With Airflow 1.9 or lower, Unload operation always included header row. In order to include header row,
 we need to turn off parallel unload. It is preferred to perform unload operation using all nodes so that it is
-faster for larger tables. So, parameter called `include_header` is added and default is set to False. 
+faster for larger tables. So, parameter called `include_header` is added and default is set to False.
 Header row will be added only if this parameter is set True and also in that case parallel will be automatically turned off (`PARALLEL OFF`)  
 
 ### Google cloud connection string
 
 With Airflow 1.9 or lower, there were two connection strings for the Google Cloud operators, both `google_cloud_storage_default` and `google_cloud_default`. This can be confusing and therefore the `google_cloud_storage_default` connection id has been replaced with `google_cloud_default` to make the connection id consistent across Airflow.
+
+### Logging Configuration
+With Airflow 1.9 or lower, `FILENAME_TEMPLATE`, `PROCESSOR_FILENAME_TEMPLATE`, `LOG_ID_TEMPLATE`, `END_OF_LOG_MARK` were configured in `airflow_local_settings.py`. These have been moved into the configuration file, and hence if you were using a custom configuration file the following defaults need to be added.
+```
+[core]
+fab_logging_level = WARN
+log_filename_template = {{ ti.dag_id }}/{{ ti.task_id }}/{{ ts }}/{{ try_number }}.log
+log_processor_filename_template = {{ filename }}.log
+
+[elasticsearch]
+elasticsearch_log_id_template = {{dag_id}}-{{task_id}}-{{execution_date}}-{{try_number}}
+elasticsearch_end_of_log_mark = end_of_log
+```
 
 ## Airflow 1.9
 
@@ -119,7 +163,116 @@ logging_config_class = my.path.default_local_settings.LOGGING_CONFIG
 
 The logging configuration file needs to be on the `PYTHONPATH`, for example `$AIRFLOW_HOME/config`. This directory is loaded by default. Any directory may be added to the `PYTHONPATH`, this might be handy when the config is in another directory or a volume is mounted in case of Docker.
 
-The config can be taken from `airflow/config_templates/airflow_local_settings.py` as a starting point. Copy the contents to `${AIRFLOW_HOME}/config/airflow_local_settings.py`,  and alter the config as is preferred. 
+The config can be taken from `airflow/config_templates/airflow_local_settings.py` as a starting point. Copy the contents to `${AIRFLOW_HOME}/config/airflow_local_settings.py`,  and alter the config as is preferred.
+
+```
+# -*- coding: utf-8 -*-
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+
+from airflow import configuration as conf
+
+# TODO: Logging format and level should be configured
+# in this file instead of from airflow.cfg. Currently
+# there are other log format and level configurations in
+# settings.py and cli.py. Please see AIRFLOW-1455.
+
+LOG_LEVEL = conf.get('core', 'LOGGING_LEVEL').upper()
+LOG_FORMAT = conf.get('core', 'log_format')
+
+BASE_LOG_FOLDER = conf.get('core', 'BASE_LOG_FOLDER')
+PROCESSOR_LOG_FOLDER = conf.get('scheduler', 'child_process_log_directory')
+
+FILENAME_TEMPLATE = '{{ ti.dag_id }}/{{ ti.task_id }}/{{ ts }}/{{ try_number }}.log'
+PROCESSOR_FILENAME_TEMPLATE = '{{ filename }}.log'
+
+DEFAULT_LOGGING_CONFIG = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'airflow.task': {
+            'format': LOG_FORMAT,
+        },
+        'airflow.processor': {
+            'format': LOG_FORMAT,
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'airflow.task',
+            'stream': 'ext://sys.stdout'
+        },
+        'file.task': {
+            'class': 'airflow.utils.log.file_task_handler.FileTaskHandler',
+            'formatter': 'airflow.task',
+            'base_log_folder': os.path.expanduser(BASE_LOG_FOLDER),
+            'filename_template': FILENAME_TEMPLATE,
+        },
+        'file.processor': {
+            'class': 'airflow.utils.log.file_processor_handler.FileProcessorHandler',
+            'formatter': 'airflow.processor',
+            'base_log_folder': os.path.expanduser(PROCESSOR_LOG_FOLDER),
+            'filename_template': PROCESSOR_FILENAME_TEMPLATE,
+        }
+        # When using s3 or gcs, provide a customized LOGGING_CONFIG
+        # in airflow_local_settings within your PYTHONPATH, see UPDATING.md
+        # for details
+        # 's3.task': {
+        #     'class': 'airflow.utils.log.s3_task_handler.S3TaskHandler',
+        #     'formatter': 'airflow.task',
+        #     'base_log_folder': os.path.expanduser(BASE_LOG_FOLDER),
+        #     's3_log_folder': S3_LOG_FOLDER,
+        #     'filename_template': FILENAME_TEMPLATE,
+        # },
+        # 'gcs.task': {
+        #     'class': 'airflow.utils.log.gcs_task_handler.GCSTaskHandler',
+        #     'formatter': 'airflow.task',
+        #     'base_log_folder': os.path.expanduser(BASE_LOG_FOLDER),
+        #     'gcs_log_folder': GCS_LOG_FOLDER,
+        #     'filename_template': FILENAME_TEMPLATE,
+        # },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL
+        },
+        'airflow': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'airflow.processor': {
+            'handlers': ['file.processor'],
+            'level': LOG_LEVEL,
+            'propagate': True,
+        },
+        'airflow.task': {
+            'handlers': ['file.task'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'airflow.task_runner': {
+            'handlers': ['file.task'],
+            'level': LOG_LEVEL,
+            'propagate': True,
+        },
+    }
+}
+```
 
 To customize the logging (for example, use logging rotate), define one or more of the logging handles that [Python has to offer](https://docs.python.org/3/library/logging.handlers.html). For more details about the Python logging, please refer to the [official logging documentation](https://docs.python.org/3/library/logging.html).
 
