@@ -226,6 +226,7 @@ def do_setup():
             'alembic>=0.8.3, <0.9',
             'bleach==2.1.2',
             'configparser>=3.5.0, <3.6.0',
+            'click==6.7',
             'croniter>=0.3.17, <0.4',
             'dill>=0.2.2, <0.3',
             'flask>=0.12, <0.13',
