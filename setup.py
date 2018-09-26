@@ -180,7 +180,7 @@ zendesk = ['zdesk']
 
 all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant + druid + pinot
 devel = [
-    'click',
+    'click==6.7',
     'freezegun',
     'jira',
     'lxml>=3.3.4',
