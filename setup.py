@@ -452,6 +452,7 @@ def do_setup():
             'cattrs~=0.9',
             'colorlog==4.0.2',
             'configparser>=3.5.0, <3.6.0',
+            'click==6.7',
             'croniter>=0.3.17, <0.4',
             'dill>=0.2.2, <0.4',
             'enum34~=1.1.6;python_version<"3.4"',
