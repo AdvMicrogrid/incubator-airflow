@@ -220,7 +220,7 @@ all_dbs = postgres + mysql + hive + mssql + hdfs + vertica + cloudant + druid + 
     + cassandra + mongo
 
 devel = [
-    'click',
+    'click==6.7',
     'freezegun',
     'jira',
     'lxml>=3.3.4',
@@ -271,6 +271,7 @@ def do_setup():
             'alembic>=0.8.3, <0.9',
             'bleach==2.1.2',
             'configparser>=3.5.0, <3.6.0',
+            'click==6.7',
             'croniter>=0.3.17, <0.4',
             'dill>=0.2.2, <0.3',
             'flask>=0.12.4, <0.13',
@@ -289,7 +290,7 @@ def do_setup():
             'lxml>=3.6.0, <4.0',
             'markdown>=2.5.2, <3.0',
             'pandas>=0.17.1, <1.0.0',
-            'pendulum==1.4.4',
+            'pendulum>=2.0.3, <3.0.0',
             'psutil>=4.2.0, <5.0.0',
             'pygments>=2.0.1, <3.0',
             'python-daemon>=2.1.1, <2.2',
