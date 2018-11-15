@@ -49,6 +49,8 @@ class Pod:
     :type cmds: list str
     :param secrets: Secrets to be launched to the pod
     :type secrets: list Secret
+    :param configmaps: ConfigMaps to be launched to the pod
+    :type configmaps: list ConfigMap
     :param result: The result that will be returned to the operator after
                    successful execution of the pod
     :type result: any
@@ -64,6 +66,7 @@ class Pod:
             cmds,
             args=None,
             secrets=None,
+            configmaps=None,
             labels=None,
             node_selectors=None,
             name=None,
@@ -86,6 +89,7 @@ class Pod:
         self.cmds = cmds
         self.args = args or []
         self.secrets = secrets or []
+        self.configmaps = configmaps or []
         self.result = result
         self.labels = labels or {}
         self.name = name
