@@ -46,6 +46,19 @@ class KubernetesRequestFactory:
             req['spec']['containers'][0]['imagePullPolicy'] = pod.image_pull_policy
 
     @staticmethod
+    def add_configmap_to_env(env, configmap):
+        env.append({
+            'name': configmap.deploy_target,
+            'valueFrom': {
+                'configMapRef': {
+                    'name': configmap.configmap,
+                    'key': configmap.key,
+                }
+
+            }
+        })
+
+    @staticmethod
     def add_secret_to_env(env, secret):
         env.append({
             'name': secret.deploy_target,
@@ -125,12 +138,15 @@ class KubernetesRequestFactory:
     @staticmethod
     def extract_env_and_secrets(pod, req):
         env_secrets = [s for s in pod.secrets if s.deploy_type == 'env']
+        env_configmaps = [c for c in pod.configmaps if c.deploy_type == 'env']
         if len(pod.envs) > 0 or len(env_secrets) > 0:
             env = []
             for k in pod.envs.keys():
                 env.append({'name': k, 'value': pod.envs[k]})
             for secret in env_secrets:
                 KubernetesRequestFactory.add_secret_to_env(env, secret)
+            for configmap in env_configmaps:
+                KubernetesRequestFactory.add_configmap_to_env(env, configmap)
             req['spec']['containers'][0]['env'] = env
 
     @staticmethod

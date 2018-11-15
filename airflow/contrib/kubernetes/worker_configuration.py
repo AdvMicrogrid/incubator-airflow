@@ -90,6 +90,15 @@ class WorkerConfiguration:
                 Secret('env', env_var_name, k8s_secret_obj, k8s_secret_key))
         return worker_secrets
 
+    def _get_configmaps(self):
+        """Defines any necessary configmaps for the pod executor"""
+        worker_configmaps = []
+        for env_var_name, obj_key_pair in six.iteritems(self.kube_config.kube_configmaps):
+            k8s_configmap_obj, k8s_configmap_key = obj_key_pair.split('=')
+            worker_configmaps.append(
+                configmap('env', env_var_name, k8s_configmap_obj, k8s_configmap_key))
+        return worker_configmaps
+
     def _get_image_pull_secrets(self):
         """Extracts any image pull secrets for fetching container(s)"""
         if not self.kube_config.image_pull_secrets:
@@ -187,6 +196,7 @@ class WorkerConfiguration:
             },
             envs=self._get_environment(),
             secrets=self._get_secrets(),
+            configmaps=self._get_configmaps(),
             service_account_name=self.kube_config.worker_service_account_name,
             image_pull_secrets=self.kube_config.image_pull_secrets,
             init_containers=worker_init_container_spec,
