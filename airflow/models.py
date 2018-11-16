@@ -50,7 +50,6 @@ import traceback
 import warnings
 import hashlib
 
-import pendulum
 import uuid
 from datetime import datetime
 from urllib.parse import urlparse, quote
