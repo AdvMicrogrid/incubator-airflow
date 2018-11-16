@@ -3103,9 +3103,6 @@ class DAG(BaseDag, LoggingMixin):
         else:
             self.timezone = settings.TIMEZONE
 
-        if self.timezone:
-            self.timezone = pendulum.timezone(self.timezone.name)
-
         self.start_date = timezone.convert_to_utc(start_date)
         self.end_date = timezone.convert_to_utc(end_date)
 
