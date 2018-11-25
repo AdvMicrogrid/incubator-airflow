@@ -33,6 +33,7 @@ from tempfile import mkdtemp
 
 import psutil
 import six
+import pendulum
 from parameterized import parameterized
 
 import airflow.example_dags
@@ -1268,7 +1269,7 @@ class SchedulerJobTest(unittest.TestCase):
             dag_id = 'test_start_date_scheduling'
             dag = self.dagbag.get_dag(dag_id)
             dag.clear()
-            self.assertTrue(dag.start_date > datetime.datetime.utcnow())
+            self.assertTrue(dag.start_date > pendulum.now(tz='UTC'))
 
             scheduler = SchedulerJob(dag_id,
                                      executor=self.null_exec,
