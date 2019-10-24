@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -18,11 +18,12 @@
 # under the License.
 #
 
-import requests
-import requests_mock
 import unittest
 
-from airflow import DAG, configuration
+import requests
+import requests_mock
+
+from airflow import DAG
 from airflow.operators.hive_to_druid import HiveToDruidTransfer
 
 
@@ -47,7 +48,12 @@ class TestDruidHook(unittest.TestCase):
         'num_shards': -1,
         'target_partition_size': 1925,
         'query_granularity': 'month',
-        'segment_granularity': 'week'
+        'segment_granularity': 'week',
+        'job_properties': {
+            "mapreduce.job.user.classpath.first": "false",
+            "mapreduce.map.output.compress": "false",
+            "mapreduce.output.fileoutputformat.compress": "false"
+        }
     }
 
     index_spec_config = {
@@ -56,9 +62,8 @@ class TestDruidHook(unittest.TestCase):
     }
 
     def setUp(self):
-        super(TestDruidHook, self).setUp()
+        super().setUp()
 
-        configuration.load_test_config()
         args = {
             'owner': 'airflow',
             'start_date': '2017-01-01'
@@ -112,11 +117,7 @@ class TestDruidHook(unittest.TestCase):
                 },
                 "tuningConfig": {
                     "type": "hadoop",
-                    "jobProperties": {
-                        "mapreduce.job.user.classpath.first": "false",
-                        "mapreduce.map.output.compress": "false",
-                        "mapreduce.output.fileoutputformat.compress": "false",
-                    },
+                    "jobProperties": self.hook_config['job_properties'],
                     "partitionsSpec": {
                         "type": "hashed",
                         "targetPartitionSize": self.hook_config['target_partition_size'],

@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,7 +22,7 @@ import unittest
 from airflow.utils.module_loading import import_string
 
 
-class ModuleImportTestCase(unittest.TestCase):
+class TestModuleImport(unittest.TestCase):
     def test_import_string(self):
         cls = import_string('airflow.utils.module_loading.import_string')
         self.assertEqual(cls, import_string)
@@ -31,5 +31,5 @@ class ModuleImportTestCase(unittest.TestCase):
         with self.assertRaises(ImportError):
             import_string('no_dots_in_path')
         msg = 'Module "airflow.utils" does not define a "nonexistent" attribute'
-        with self.assertRaisesRegexp(ImportError, msg):
+        with self.assertRaisesRegex(ImportError, msg):
             import_string('airflow.utils.nonexistent')

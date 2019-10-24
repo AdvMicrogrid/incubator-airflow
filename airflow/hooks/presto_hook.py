@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,12 +17,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from builtins import str
-
 from pyhive import presto
 from pyhive.exc import DatabaseError
+from requests.auth import HTTPBasicAuth
 
 from airflow.hooks.dbapi_hook import DbApiHook
+
 
 class PrestoException(Exception):
     pass
@@ -44,24 +44,31 @@ class PrestoHook(DbApiHook):
     def get_conn(self):
         """Returns a connection object"""
         db = self.get_connection(self.presto_conn_id)
+        reqkwargs = None
+        if db.password is not None:
+            reqkwargs = {'auth': HTTPBasicAuth(db.login, db.password)}
         return presto.connect(
             host=db.host,
             port=db.port,
             username=db.login,
+            source=db.extra_dejson.get('source', 'airflow'),
+            protocol=db.extra_dejson.get('protocol', 'http'),
             catalog=db.extra_dejson.get('catalog', 'hive'),
+            requests_kwargs=reqkwargs,
             schema=db.schema)
 
     @staticmethod
     def _strip_sql(sql):
         return sql.strip().rstrip(';')
 
-    def _get_pretty_exception_message(self, e):
+    @staticmethod
+    def _get_pretty_exception_message(e):
         """
         Parses some DatabaseError to provide a better error message
         """
-        if (hasattr(e, 'message')
-                and 'errorName' in e.message
-                and 'message' in e.message):
+        if (hasattr(e, 'message') and
+            'errorName' in e.message and
+                'message' in e.message):
             return ('{name}: {message}'.format(
                     name=e.message['errorName'],
                     message=e.message['message']))
@@ -73,7 +80,7 @@ class PrestoHook(DbApiHook):
         Get a set of records from Presto
         """
         try:
-            return super(PrestoHook, self).get_records(
+            return super().get_records(
                 self._strip_sql(hql), parameters)
         except DatabaseError as e:
             raise PrestoException(self._get_pretty_exception_message(e))
@@ -84,7 +91,7 @@ class PrestoHook(DbApiHook):
         returns.
         """
         try:
-            return super(PrestoHook, self).get_first(
+            return super().get_first(
                 self._strip_sql(hql), parameters)
         except DatabaseError as e:
             raise PrestoException(self._get_pretty_exception_message(e))
@@ -112,7 +119,7 @@ class PrestoHook(DbApiHook):
         """
         Execute the statement against Presto. Can be used to create views.
         """
-        return super(PrestoHook, self).run(self._strip_sql(hql), parameters)
+        return super().run(self._strip_sql(hql), parameters)
 
     # TODO Enable commit_every once PyHive supports transaction.
     # Unfortunately, PyHive 0.5.1 doesn't support transaction for now,
@@ -128,4 +135,4 @@ class PrestoHook(DbApiHook):
         :param target_fields: The names of the columns to fill in the table
         :type target_fields: iterable of strings
         """
-        super(PrestoHook, self).insert_rows(table, rows, target_fields, 0)
+        super().insert_rows(table, rows, target_fields, 0)

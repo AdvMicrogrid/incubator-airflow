@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -41,9 +41,9 @@ class DiscordWebhookOperator(SimpleHttpOperator):
                              "webhooks/{webhook.id}/{webhook.token}"
     :type webhook_endpoint: str
     :param message: The message you want to send to your Discord channel
-                    (max 2000 characters)
+                    (max 2000 characters). (templated)
     :type message: str
-    :param username: Override the default username of the webhook
+    :param username: Override the default username of the webhook. (templated)
     :type username: str
     :param avatar_url: Override the default avatar of the webhook
     :type avatar_url: str
@@ -53,7 +53,7 @@ class DiscordWebhookOperator(SimpleHttpOperator):
     :type proxy: str
     """
 
-    template_fields = ('username', 'message')
+    template_fields = ['username', 'message']
 
     @apply_defaults
     def __init__(self,
@@ -66,9 +66,9 @@ class DiscordWebhookOperator(SimpleHttpOperator):
                  proxy=None,
                  *args,
                  **kwargs):
-        super(DiscordWebhookOperator, self).__init__(endpoint=webhook_endpoint,
-                                                     *args,
-                                                     **kwargs)
+        super().__init__(endpoint=webhook_endpoint,
+                         *args,
+                         **kwargs)
 
         if not http_conn_id:
             raise AirflowException('No valid Discord http_conn_id supplied.')

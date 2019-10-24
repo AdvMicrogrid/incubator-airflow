@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -26,8 +26,8 @@ class VerticaOperator(BaseOperator):
     Executes sql code in a specific Vertica database
 
     :param vertica_conn_id: reference to a specific Vertica database
-    :type vertica_conn_id: string
-    :param sql: the sql code to be executed
+    :type vertica_conn_id: str
+    :param sql: the sql code to be executed. (templated)
     :type sql: Can receive a str representing a sql statement,
         a list of str (sql statements), or reference to a template file.
         Template reference are recognized by str ending in '.sql'
@@ -39,11 +39,11 @@ class VerticaOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self, sql, vertica_conn_id='vertica_default', *args, **kwargs):
-        super(VerticaOperator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.vertica_conn_id = vertica_conn_id
         self.sql = sql
 
     def execute(self, context):
         self.log.info('Executing: %s', self.sql)
         hook = VerticaHook(vertica_conn_id=self.vertica_conn_id)
-        hook.run(self.sql)
+        hook.run(sql=self.sql)

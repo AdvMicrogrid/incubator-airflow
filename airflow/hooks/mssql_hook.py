@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -32,7 +32,7 @@ class MsSqlHook(DbApiHook):
     supports_autocommit = True
 
     def __init__(self, *args, **kwargs):
-        super(MsSqlHook, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.schema = kwargs.pop("schema", None)
 
     def get_conn(self):
@@ -50,3 +50,6 @@ class MsSqlHook(DbApiHook):
 
     def set_autocommit(self, conn, autocommit):
         conn.autocommit(autocommit)
+
+    def get_autocommit(self, conn):
+        return conn.autocommit_state

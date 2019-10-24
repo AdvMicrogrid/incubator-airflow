@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,12 +31,12 @@ class HivePartitionSensor(BaseSensorOperator):
 
     :param table: The name of the table to wait for, supports the dot
         notation (my_database.my_table)
-    :type table: string
+    :type table: str
     :param partition: The partition clause to wait for. This is passed as
         is to the metastore Thrift client ``get_partitions_by_filter`` method,
         and apparently supports SQL like notation as in ``ds='2015-01-01'
         AND type='value'`` and comparison operators as in ``"ds>=2015-01-01"``
-    :type partition: string
+    :type partition: str
     :param metastore_conn_id: reference to the metastore thrift service
         connection id
     :type metastore_conn_id: str
@@ -52,7 +52,7 @@ class HivePartitionSensor(BaseSensorOperator):
                  poke_interval=60 * 3,
                  *args,
                  **kwargs):
-        super(HivePartitionSensor, self).__init__(
+        super().__init__(
             poke_interval=poke_interval, *args, **kwargs)
         if not partition:
             partition = "ds='{{ ds }}'"
@@ -65,8 +65,8 @@ class HivePartitionSensor(BaseSensorOperator):
         if '.' in self.table:
             self.schema, self.table = self.table.split('.')
         self.log.info(
-            'Poking for table {self.schema}.{self.table}, '
-            'partition {self.partition}'.format(**locals()))
+            'Poking for table %s.%s, partition %s', self.schema, self.table, self.partition
+        )
         if not hasattr(self, 'hook'):
             from airflow.hooks.hive_hooks import HiveMetastoreHook
             self.hook = HiveMetastoreHook(

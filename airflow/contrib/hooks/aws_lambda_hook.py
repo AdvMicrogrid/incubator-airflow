@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,6 +17,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
+"""
+This module contains AWS Lambda hook
+"""
 from airflow.contrib.hooks.aws_hook import AwsHook
 
 
@@ -36,14 +39,16 @@ class AwsLambdaHook(AwsHook):
     :type invocation_type: str
     """
 
-    def __init__(self, function_name, region_name=None, log_type='None', qualifier='$LATEST',
+    def __init__(self, function_name, region_name=None,
+                 log_type='None', qualifier='$LATEST',
                  invocation_type='RequestResponse', *args, **kwargs):
         self.function_name = function_name
         self.region_name = region_name
         self.log_type = log_type
         self.invocation_type = invocation_type
         self.qualifier = qualifier
-        super(AwsLambdaHook, self).__init__(*args, **kwargs)
+        self.conn = None
+        super().__init__(*args, **kwargs)
 
     def get_conn(self):
         self.conn = self.get_client_type('lambda', self.region_name)

@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -20,8 +20,8 @@
 import json
 import re
 
-from airflow.hooks.http_hook import HttpHook
 from airflow.exceptions import AirflowException
+from airflow.hooks.http_hook import HttpHook
 
 
 class DiscordWebhookHook(HttpHook):
@@ -64,7 +64,7 @@ class DiscordWebhookHook(HttpHook):
                  proxy=None,
                  *args,
                  **kwargs):
-        super(DiscordWebhookHook, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.http_conn_id = http_conn_id
         self.webhook_endpoint = self._get_webhook_endpoint(http_conn_id, webhook_endpoint)
         self.message = message

@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -17,23 +17,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from __future__ import print_function
-
 import unittest
 
-from airflow import DAG, configuration
-from airflow.utils import timezone
-
+from airflow import DAG
 from airflow.contrib.operators.snowflake_operator import SnowflakeOperator
-
-try:
-    from unittest import mock
-except ImportError:
-    try:
-        import mock
-    except ImportError:
-        mock = None
-
+from airflow.utils import timezone
+from tests.compat import mock
 
 DEFAULT_DATE = timezone.datetime(2015, 1, 1)
 DEFAULT_DATE_ISO = DEFAULT_DATE.isoformat()
@@ -46,8 +35,7 @@ LONG_MOCK_PATH += 'SnowflakeOperator.get_hook'
 class TestSnowflakeOperator(unittest.TestCase):
 
     def setUp(self):
-        super(TestSnowflakeOperator, self).setUp()
-        configuration.load_test_config()
+        super().setUp()
         args = {'owner': 'airflow', 'start_date': DEFAULT_DATE}
         dag = DAG(TEST_DAG_ID, default_args=args)
         self.dag = dag

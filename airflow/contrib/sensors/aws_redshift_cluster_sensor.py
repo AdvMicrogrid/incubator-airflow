@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -40,13 +40,13 @@ class AwsRedshiftClusterSensor(BaseSensorOperator):
                  aws_conn_id='aws_default',
                  *args,
                  **kwargs):
-        super(AwsRedshiftClusterSensor, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.cluster_identifier = cluster_identifier
         self.target_status = target_status
         self.aws_conn_id = aws_conn_id
 
     def poke(self, context):
-        self.log.info('Poking for status : {self.target_status}\n'
-                      'for cluster {self.cluster_identifier}'.format(**locals()))
+        self.log.info('Poking for status : %s\nfor cluster %s',
+                      self.target_status, self.cluster_identifier)
         hook = RedshiftHook(aws_conn_id=self.aws_conn_id)
         return hook.cluster_status(self.cluster_identifier) == self.target_status

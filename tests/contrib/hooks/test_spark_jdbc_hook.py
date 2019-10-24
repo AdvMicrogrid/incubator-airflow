@@ -7,9 +7,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -19,10 +19,9 @@
 #
 import unittest
 
-from airflow import configuration, models
-from airflow.utils import db
-
 from airflow.contrib.hooks.spark_jdbc_hook import SparkJDBCHook
+from airflow.models import Connection
+from airflow.utils import db
 
 
 class TestSparkJDBCHook(unittest.TestCase):
@@ -65,15 +64,14 @@ class TestSparkJDBCHook(unittest.TestCase):
     }
 
     def setUp(self):
-        configuration.load_test_config()
         db.merge_conn(
-            models.Connection(
+            Connection(
                 conn_id='spark-default', conn_type='spark',
                 host='yarn://yarn-master',
                 extra='{"queue": "root.etl", "deploy-mode": "cluster"}')
         )
         db.merge_conn(
-            models.Connection(
+            Connection(
                 conn_id='jdbc-default', conn_type='postgres',
                 host='localhost', schema='default', port=5432,
                 login='user', password='supersecret',
@@ -125,7 +123,7 @@ class TestSparkJDBCHook(unittest.TestCase):
             '-createTableColumnTypes', 'columnMcColumnFace INTEGER(100), name CHAR(64),'
                                        'comments VARCHAR(1024)'
         ]
-        self.assertEquals(expected_jdbc_arguments, cmd)
+        self.assertEqual(expected_jdbc_arguments, cmd)
 
     def test_build_jdbc_arguments_invalid(self):
         # Given
