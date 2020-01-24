@@ -150,31 +150,33 @@ ${SED_COMMAND} -i "s|{{CONFIGMAP_DAGS_VOLUME_CLAIM}}|${CONFIGMAP_DAGS_VOLUME_CLA
 cat "${BUILD_DIRNAME}/airflow.yaml"
 cat "${BUILD_DIRNAME}/configmaps.yaml"
 
-kubectl delete -f "${DIRNAME}/postgres.yaml"
-kubectl delete -f "${BUILD_DIRNAME}/airflow.yaml"
-kubectl delete -f "${DIRNAME}/secrets.yaml"
+KUBECTL_CMD="minikube kubectl --"
+
+${KUBECTL_CMD} delete -f "${DIRNAME}/postgres.yaml"
+${KUBECTL_CMD} delete -f "${BUILD_DIRNAME}/airflow.yaml"
+${KUBECTL_CMD} delete -f "${DIRNAME}/secrets.yaml"
 
 set -e
 
-kubectl apply -f "${DIRNAME}/secrets.yaml"
-kubectl apply -f "${BUILD_DIRNAME}/configmaps.yaml"
-kubectl apply -f "${DIRNAME}/postgres.yaml"
-kubectl apply -f "${DIRNAME}/volumes.yaml"
-kubectl apply -f "${BUILD_DIRNAME}/airflow.yaml"
+${KUBECTL_CMD} apply -f "${DIRNAME}/secrets.yaml"
+${KUBECTL_CMD} apply -f "${BUILD_DIRNAME}/configmaps.yaml"
+${KUBECTL_CMD} apply -f "${DIRNAME}/postgres.yaml"
+${KUBECTL_CMD} apply -f "${DIRNAME}/volumes.yaml"
+${KUBECTL_CMD} apply -f "${BUILD_DIRNAME}/airflow.yaml"
 
 dump_logs() {
   echo "------- pod description -------"
-  kubectl describe pod "${POD}"
+  ${KUBECTL_CMD} describe pod "${POD}"
   echo "------- webserver init container logs - init -------"
-  kubectl logs "${POD}" -c init || true
+  ${KUBECTL_CMD} logs "${POD}" -c init || true
   if [[ "${GIT_SYNC}" == "1" ]]; then
       echo "------- webserver init container logs - git-sync-clone -------"
-      kubectl logs "${POD}" -c git-sync-clone || true
+      ${KUBECTL_CMD} logs "${POD}" -c git-sync-clone || true
   fi
   echo "------- webserver logs -------"
-  kubectl logs "${POD}" -c webserver || true
+  ${KUBECTL_CMD} logs "${POD}" -c webserver || true
   echo "------- scheduler logs -------"
-  kubectl logs "${POD}" -c scheduler || true
+  ${KUBECTL_CMD} logs "${POD}" -c scheduler || true
   echo "--------------"
 }
 
@@ -185,17 +187,17 @@ PODS_ARE_READY="0"
 for i in {1..150}
 do
   echo "------- Running kubectl get pods: $i -------"
-  PODS=$(kubectl get pods | awk 'NR>1 {print $0}')
+  PODS=$(${KUBECTL_CMD} get pods | awk 'NR>1 {print $0}')
   echo "$PODS"
   NUM_AIRFLOW_READY=$(echo "${PODS}" | grep airflow | awk '{print $2}' | grep -cE '([0-9])\/(\1)' | xargs)
   NUM_POSTGRES_READY=$(echo "${PODS}" | grep postgres | awk '{print $2}' | grep -cE '([0-9])\/(\1)' | xargs)
-  if [[ "${NUM_AIRFLOW_READY}" == "1" && "${NUM_POSTGRES_READY}" == "1" ]]; then
+  if [[ "${NUM_AIRFLOW_READY}" == "2" && "${NUM_POSTGRES_READY}" == "1" ]]; then
     PODS_ARE_READY="1"
     break
   fi
   sleep 4
 done
-POD=$(kubectl get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep airflow | head -1)
+POD=$(${KUBECTL_CMD} get pods -o go-template --template '{{range .items}}{{.metadata.name}}{{"\n"}}{{end}}' | grep airflow | head -1)
 
 if [[ "${PODS_ARE_READY}" == "1" ]]; then
   echo "PODS are ready."
@@ -206,7 +208,7 @@ else
 fi
 
 # Wait until Airflow webserver is up
-KUBERNETES_HOST=docker
+KUBERNETES_HOST=$(minikube ip)
 AIRFLOW_WEBSERVER_IS_READY="0"
 CONSECUTIVE_SUCCESS_CALLS=0
 for i in {1..30}

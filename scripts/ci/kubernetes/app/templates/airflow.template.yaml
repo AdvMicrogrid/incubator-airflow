@@ -30,19 +30,22 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: airflow
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      name: airflow
   template:
     metadata:
       labels:
         name: airflow
     spec:
       initContainers:
-      - name: "init"
+      - name: init
         image: {{AIRFLOW_IMAGE}}:{{AIRFLOW_TAG}}
         imagePullPolicy: IfNotPresent
         volumeMounts:
@@ -59,11 +62,12 @@ spec:
             secretKeyRef:
               name: airflow-secrets
               key: sql_alchemy_conn
-        command:
-          - "bash"
+        command: ["/bin/sh", "-c"]
         args:
-          - "-cx"
-          - "/tmp/airflow-test-env-init.sh"
+          - airflow initdb;
+            alembic upgrade heads;
+            airflow create_user -u airflow -l airflow -f jon -e airflow@apache.org -r Admin -p airflow
+
 {{INIT_GIT_SYNC}}
       containers:
       - name: webserver
