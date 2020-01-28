@@ -25,7 +25,7 @@ spec:
   capacity:
     storage: 2Gi
   hostPath:
-    path: /airflow-dags/
+    path: /hosthome/Development/incubator-airflow/dist/dags
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -48,7 +48,7 @@ spec:
   capacity:
     storage: 2Gi
   hostPath:
-    path: /airflow-logs/
+    path: /hosthome/Development/incubator-airflow/dist/logs
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1

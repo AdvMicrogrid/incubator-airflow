@@ -152,16 +152,18 @@ cat "${BUILD_DIRNAME}/configmaps.yaml"
 
 KUBECTL_CMD="minikube kubectl --"
 
+${KUBECTL_CMD} delete -f "${DIRNAME}/secrets.yaml"
+${KUBECTL_CMD} delete -f "${BUILD_DIRNAME}/configmaps.yaml"
+${KUBECTL_CMD} delete -f "${DIRNAME}/volumes.yaml"
 ${KUBECTL_CMD} delete -f "${DIRNAME}/postgres.yaml"
 ${KUBECTL_CMD} delete -f "${BUILD_DIRNAME}/airflow.yaml"
-${KUBECTL_CMD} delete -f "${DIRNAME}/secrets.yaml"
 
 set -e
 
 ${KUBECTL_CMD} apply -f "${DIRNAME}/secrets.yaml"
 ${KUBECTL_CMD} apply -f "${BUILD_DIRNAME}/configmaps.yaml"
-${KUBECTL_CMD} apply -f "${DIRNAME}/postgres.yaml"
 ${KUBECTL_CMD} apply -f "${DIRNAME}/volumes.yaml"
+${KUBECTL_CMD} apply -f "${DIRNAME}/postgres.yaml"
 ${KUBECTL_CMD} apply -f "${BUILD_DIRNAME}/airflow.yaml"
 
 dump_logs() {
